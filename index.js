@@ -17,28 +17,45 @@ app.post("/compile", (req, res) => {
     const executablePath = __dirname + "/exec/" + id
     const filePath = __dirname + '/code/' + id +'.c'
 
-    fs.appendFile(filePath, code, function() {
-        exec(
-            `gcc ${filePath} -o ${executablePath} && ./exec/${id}`,
-            function callback(error, stdout, stderr){
-                if (error) {
-                    res.json({
-                        error: true,
-                        message: "An error occurred" + error.message
-                    })
-                } else if(stderr) {
-                    res.json({
-                        error: true,
-                        message: `Compilation error - ${stderr}`
-                    })
-                } else {
-                    res.json({
-                        error: false,
-                        message: stdout
-                    })
-                }
+    const searchRegExp = /\“/g
+    const search2 = /\”/g
+    const replaceWith = "\""
+
+    const data = code.replace(searchRegExp, replaceWith).replace(search2, "\"")
+
+    console.log({data})
+
+    console.log({data})
+
+    try {
+        fs.appendFile(filePath, data, function() {
+            exec(
+                `gcc ${filePath} -o ${executablePath} && ./exec/${id}`,
+                function callback(error, stdout, stderr){
+                    if (error) {
+                        res.json({
+                            error: true,
+                            message: "An error occurred" + error.message
+                        })
+                    } else if(stderr) {
+                        res.json({
+                            error: true,
+                            message: `Compilation error - ${stderr}`
+                        })
+                    } else {
+                        res.json({
+                            error: false,
+                            message: stdout
+                        })
+                    }
+                });
         });
-    });
+    } catch (e) {
+        res.json({
+            error: true,
+            message: "An error occurred on the server"
+        })
+    }
 
 })
 
